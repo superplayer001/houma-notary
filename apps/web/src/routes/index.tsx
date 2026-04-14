@@ -2,6 +2,9 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
 
 import Login from '../pages/Login'
+import Home from '../pages/Home'
+import NotFound from '../pages/NotFound'
+import Unauthorized from '../pages/Unauthorized'
 import UserLayout from '../pages/user/Layout'
 import UserApplicationList from '../pages/user/ApplicationList'
 import UserApplicationNew from '../pages/user/ApplicationNew'
@@ -14,13 +17,22 @@ import StaffCaseDetail from '../pages/staff/CaseDetail'
 
 function ProtectedRoute({ children, allowedType }: { children: React.ReactNode; allowedType?: 'user' | 'staff' }) {
   const { token, userType } = useAuthStore()
-  if (!token) return <Navigate to="/login" replace />
-  if (allowedType && userType !== allowedType) return <Navigate to={userType === 'staff' ? '/staff/todos' : '/user/applications'} replace />
+
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (allowedType && userType !== allowedType) {
+    return <Navigate to="/unauthorized" replace />
+  }
+
   return <>{children}</>
 }
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
+  { path: '/', element: <Home /> },
+  { path: '/unauthorized', element: <Unauthorized /> },
   {
     path: '/user',
     element: <ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>,
@@ -42,5 +54,5 @@ export const router = createBrowserRouter([
       { path: 'cases/:id', element: <StaffCaseDetail /> },
     ],
   },
-  { path: '/', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <NotFound /> },
 ])
