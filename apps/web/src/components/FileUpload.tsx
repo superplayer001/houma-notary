@@ -8,9 +8,10 @@ interface Props {
   applicationId: string
   materials: Material[]
   onSuccess: () => void
+  disabled?: boolean
 }
 
-export default function FileUpload({ applicationId, materials, onSuccess }: Props) {
+export default function FileUpload({ applicationId, materials, onSuccess, disabled }: Props) {
   const fileList: UploadFile[] = materials.map((m) => ({
     uid: m.id,
     name: m.name,
@@ -37,16 +38,18 @@ export default function FileUpload({ applicationId, materials, onSuccess }: Prop
       renderItem={(item) => (
         <List.Item
           actions={[
-            <Button
-              key="delete"
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => message.info('删除功能待实现')}
-            >
-              删除
-            </Button>,
-          ]}
+            !disabled && (
+              <Button
+                key="delete"
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => message.info('删除功能待实现')}
+              >
+                删除
+              </Button>
+            ),
+          ].filter(Boolean)}
         >
           <List.Item.Meta
             avatar={<FileOutlined />}
@@ -56,15 +59,17 @@ export default function FileUpload({ applicationId, materials, onSuccess }: Prop
         </List.Item>
       )}
       footer={
-        <Upload
-          name="file"
-          customRequest={handleUpload}
-          fileList={fileList}
-          showUploadList={false}
-          accept="*"
-        >
-          <Button icon={<UploadOutlined />}>上传材料</Button>
-        </Upload>
+        !disabled && (
+          <Upload
+            name="file"
+            customRequest={handleUpload}
+            fileList={fileList}
+            showUploadList={false}
+            accept="*"
+          >
+            <Button icon={<UploadOutlined />}>上传材料</Button>
+          </Upload>
+        )
       }
     />
   )

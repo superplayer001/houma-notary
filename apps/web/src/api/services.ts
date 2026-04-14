@@ -9,6 +9,7 @@ export const userApi = {
   listApplications: (params?: PaginationParams) => client.get<Application[]>('/user/applications', { params }),
   getApplication: (id: string) => client.get<Application>(`/user/applications/${id}`),
   createApplication: (data: Partial<Application>) => client.post<Application>('/user/applications', data),
+  withdrawApplication: (id: string) => client.post<void>(`/user/applications/${id}/withdraw`),
   uploadMaterial: (applicationId: string, file: File) => {
     const formData = new FormData()
     formData.append('file', file)
