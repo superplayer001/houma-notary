@@ -28,4 +28,5 @@ export const staffApi = {
   supplementApplication: (id: string, reason: string) => client.post<void>(`/staff/applications/${id}/supplement`, { reason }),
   rejectApplication: (id: string, reason: string) => client.post<void>(`/staff/applications/${id}/reject`, { reason }),
   completeCase: (id: string, result: string) => client.post<Case>(`/staff/cases/${id}/complete`, { result }),
+  voidCase: (id: string, reason: string) => client.post<Case>(`/staff/cases/${id}/void`, { reason }),
 }

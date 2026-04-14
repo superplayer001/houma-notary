@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert } from 'antd'
-import { CheckCircleFilled, ClockCircleFilled } from '@ant-design/icons'
+import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert, Modal } from 'antd'
+import { CheckCircleFilled, ClockCircleFilled, ExclamationCircleOutlined } from '@ant-design/icons'
 import { staffApi } from '../../api/services'
 import type { Case } from '../../types'
 import { CASE_STATUS_MAP } from '../../types'
 
 const { TextArea } = Input
+const { confirm } = Modal
 
 export default function StaffCaseDetail() {
   const { id } = useParams<{ id: string }>()
@@ -14,6 +15,7 @@ export default function StaffCaseDetail() {
   const [data, setData] = useState<Case | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
   const fetchData = async () => {
     if (!id) return
@@ -31,13 +33,47 @@ export default function StaffCaseDetail() {
 
   const handleComplete = async () => {
     if (!id) return
+    setActionLoading(true)
     try {
       await staffApi.completeCase(id, result)
       message.success('案件已完成')
       fetchData()
     } catch {
       message.error('操作失败')
+    } finally {
+      setActionLoading(false)
     }
+  }
+
+  const handleVoid = () => {
+    if (!data) return
+    let reason = ''
+    confirm({
+      title: '确认作废此案件？',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <Input.TextArea
+          placeholder="请输入作废原因"
+          rows={3}
+          onChange={(e) => (reason = e.target.value)}
+        />
+      ),
+      okText: '确认作废',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        setActionLoading(true)
+        try {
+          await staffApi.voidCase(data.id, reason)
+          message.success('案件已作废')
+          fetchData()
+        } catch {
+          message.error('操作失败')
+        } finally {
+          setActionLoading(false)
+        }
+      },
+    })
   }
 
   if (!data) return null
@@ -61,7 +97,14 @@ export default function StaffCaseDetail() {
       <Card
         title="案件详情"
         extra={
-          <Button onClick={() => navigate('/staff/cases')}>返回列表</Button>
+          <Space>
+            {data.status !== 'completed' && data.status !== 'voided' && (
+              <Button danger onClick={handleVoid} loading={actionLoading}>
+                作废
+              </Button>
+            )}
+            <Button onClick={() => navigate('/staff/cases')}>返回列表</Button>
+          </Space>
         }
       >
         <Descriptions column={2} bordered>
@@ -105,7 +148,7 @@ export default function StaffCaseDetail() {
             placeholder="请输入处理结果..."
           />
           <Space style={{ marginTop: 16 }}>
-            <Button type="primary" onClick={handleComplete}>完成案件</Button>
+            <Button type="primary" onClick={handleComplete} loading={actionLoading}>完成案件</Button>
           </Space>
         </Card>
       )}
