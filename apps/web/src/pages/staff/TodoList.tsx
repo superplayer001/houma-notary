@@ -1,31 +1,19 @@
-import { useEffect, useState } from 'react'
-import { Table, Button, Tag } from 'antd'
+import { useEffect } from 'react'
+import { Table, Tag, Empty } from 'antd'
 import type { TablePaginationConfig } from 'antd/es/table/interface'
 import { Link } from 'react-router-dom'
-import { staffApi } from '../../api/services'
-import type { Application, ApplicationStatus } from '../../types'
-import { APPLICATION_STATUS_MAP, BIZ_TYPE_OPTIONS } from '../../types'
+import { useStaffPendingApplications } from '../../hooks/useStaffPendingApplications'
+import { BIZ_TYPE_OPTIONS } from '../../types'
 
 export default function StaffTodoList() {
-  const [data, setData] = useState<Application[]>([])
-  const [loading, setLoading] = useState(false)
-  const [pagination, setPagination] = useState<TablePaginationConfig>({ current: 1, pageSize: 10, total: 0 })
+  const { data, total, page, pageSize, loading, error, load, refresh } = useStaffPendingApplications()
 
-  const fetchData = async (page = 1, pageSize = 10) => {
-    setLoading(true)
-    try {
-      const res = await staffApi.listTodos({ page, pageSize })
-      setData(res.data)
-      setPagination((prev) => ({ ...prev, current: page, pageSize, total: res.data.length }))
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    load(1, 10)
+  }, [])
 
-  useEffect(() => { fetchData(pagination.current, pagination.pageSize) }, [])
-
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    fetchData(pagination.current, pagination.pageSize)
+  const handleTableChange = (p: TablePaginationConfig) => {
+    load(p.current ?? 1, p.pageSize ?? 10)
   }
 
   const getBizTypeLabel = (value: string) => {
@@ -33,40 +21,54 @@ export default function StaffTodoList() {
     return option ? option.label : value
   }
 
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, { color: string; text: string }> = {
+      SUBMITTED: { color: 'blue', text: '已提交' },
+      DRAFT: { color: 'default', text: '草稿' },
+      SUPPLEMENT_REQUIRED: { color: 'orange', text: '待补件' },
+      ACCEPTED: { color: 'green', text: '已受理' },
+      REJECTED: { color: 'red', text: '已驳回' },
+      WITHDRAWN: { color: 'default', text: '已撤回' },
+    }
+    return map[status.toUpperCase()] ?? { color: 'default', text: status }
+  }
+
+  if (error && data.length === 0) {
+    return <Empty description="加载失败" />
+  }
+
   return (
-    <div>
-      <Table
-        rowKey="id"
-        loading={loading}
-        dataSource={data}
-        pagination={pagination}
-        onChange={handleTableChange}
-        columns={[
-          { title: 'ID', dataIndex: 'id', key: 'id', width: 200 },
-          { title: '用户ID', dataIndex: 'userId', key: 'userId' },
-          { title: '业务类型', dataIndex: 'bizType', key: 'bizType', render: (bizType: string) => getBizTypeLabel(bizType) },
-          { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true },
-          {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: ApplicationStatus) => {
-              const s = APPLICATION_STATUS_MAP[status] || { color: 'default', text: status }
-              return <Tag color={s.color}>{s.text}</Tag>
-            },
+    <Table
+      rowKey="id"
+      loading={loading}
+      dataSource={data}
+      pagination={{ current: page, pageSize, total, showSizeChanger: true, showTotal: (t) => `共 ${t} 条` }}
+      onChange={handleTableChange}
+      columns={[
+        { title: '申请编号', dataIndex: 'applicationNo', key: 'applicationNo', width: 160 },
+        { title: '业务类型', dataIndex: 'bizType', key: 'bizType', render: (v: string) => getBizTypeLabel(v) },
+        { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true },
+        {
+          title: '状态',
+          dataIndex: 'status',
+          key: 'status',
+          render: (s: string) => {
+            const m = getStatusLabel(s)
+            return <Tag color={m.color}>{m.text}</Tag>
           },
-          { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
-          {
-            title: '操作',
-            key: 'action',
-            render: (_: unknown, record: Application) => (
-              <Link to={`/staff/applications/${record.id}`}>
-                <Button type="link">处理</Button>
-              </Link>
-            ),
-          },
-        ]}
-      />
-    </div>
+        },
+        { title: '提交时间', dataIndex: 'submittedAt', key: 'submittedAt', width: 170 },
+        { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
+        {
+          title: '操作',
+          key: 'action',
+          render: (_: unknown, record: { id: string }) => (
+            <Link to={`/staff/applications/${record.id}`}>
+              <span style={{ color: '#1677ff', cursor: 'pointer' }}>处理</span>
+            </Link>
+          ),
+        },
+      ]}
+    />
   )
 }

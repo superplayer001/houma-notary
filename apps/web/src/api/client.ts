@@ -1,21 +1,17 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios'
 import { message } from 'antd'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 const client: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 })
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
@@ -24,7 +20,6 @@ client.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response) {
       const status = error.response.status
-
       if (status === 401) {
         localStorage.removeItem('token')
         localStorage.removeItem('userType')
@@ -39,7 +34,8 @@ client.interceptors.response.use(
       } else if (status >= 500) {
         message.error('服务器错误，请稍后重试')
       } else {
-        const errMsg = (error.response.data as { message?: string })?.message || error.message || '请求失败'
+        const errMsg =
+          (error.response.data as { message?: string })?.message ?? error.message ?? '请求失败'
         message.error(errMsg)
       }
     } else if (error.request) {

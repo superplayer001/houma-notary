@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Table, Button, Tag } from 'antd'
 import type { TablePaginationConfig } from 'antd/es/table/interface'
 import { Link } from 'react-router-dom'
-import { staffApi } from '../../api/services'
+import { listCases } from '../../services/api/staff'
 import type { Case, CaseStatus } from '../../types'
 import { CASE_STATUS_MAP } from '../../types'
 
@@ -14,9 +14,9 @@ export default function StaffCaseList() {
   const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true)
     try {
-      const res = await staffApi.listCases({ page, pageSize })
+      const res = await listCases({ page, pageSize })
       setData(res.data)
-      setPagination((prev) => ({ ...prev, current: page, pageSize, total: res.data.length }))
+      setPagination((prev) => ({ ...prev, current: page, pageSize, total: res.total }))
     } finally {
       setLoading(false)
     }

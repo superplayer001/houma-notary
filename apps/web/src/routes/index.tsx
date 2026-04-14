@@ -16,8 +16,13 @@ import StaffTodoList from '../pages/staff/TodoList'
 import StaffApplicationDetail from '../pages/staff/ApplicationDetail'
 import StaffCaseList from '../pages/staff/CaseList'
 import StaffCaseDetail from '../pages/staff/CaseDetail'
+import AdminLayout from '../pages/admin/Layout'
+import AdminUsers from '../pages/admin/Users'
+import AdminAudit from '../pages/admin/AuditLog'
+import AdminSystemParams from '../pages/admin/SystemParams'
+import AdminExternalDebug from '../pages/admin/ExternalDebug'
 
-function ProtectedRoute({ children, allowedType }: { children: React.ReactNode; allowedType?: 'user' | 'staff' }) {
+function ProtectedRoute({ children, allowedType }: { children: React.ReactNode; allowedType?: 'user' | 'staff' | 'admin' }) {
   const { token, userType } = useAuthStore()
 
   if (!token) {
@@ -56,6 +61,17 @@ export const router = createBrowserRouter([
       { path: 'cases', element: <StaffCaseList /> },
       { path: 'cases/:id', element: <StaffCaseDetail /> },
       { path: 'video-session', element: <VideoSession /> },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <ProtectedRoute allowedType="admin"><AdminLayout /></ProtectedRoute>,
+    children: [
+      { index: true, element: <Navigate to="/admin/users" replace /> },
+      { path: 'users', element: <AdminUsers /> },
+      { path: 'audit', element: <AdminAudit /> },
+      { path: 'params', element: <AdminSystemParams /> },
+      { path: 'external', element: <AdminExternalDebug /> },
     ],
   },
   { path: '*', element: <NotFound /> },

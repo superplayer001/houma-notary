@@ -16,6 +16,8 @@ export default function Home() {
       navigate('/staff/todos', { replace: true })
     } else if (userType === 'user') {
       navigate('/user/applications', { replace: true })
+    } else if (userType === 'admin') {
+      navigate('/admin/users', { replace: true })
     } else {
       navigate('/login', { replace: true })
     }

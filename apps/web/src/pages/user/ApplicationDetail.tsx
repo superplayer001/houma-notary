@@ -1,36 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Descriptions, Tag, Button, Space, message, Alert, Modal } from 'antd'
-import { ExclamationCircleOutlined } from '@ant-design/icons'
-import { userApi } from '../../api/services'
+import { Card, Descriptions, Tag, Button, Space, message, Alert, Modal, Spin } from 'antd'
+import { ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { useApplicationDetail } from '../../hooks/useApplicationDetail'
 import FileUpload from '../../components/FileUpload'
-import type { Application } from '../../types'
-import { APPLICATION_STATUS_MAP, BIZ_TYPE_OPTIONS } from '../../types'
+import { APPLICATION_STATUS_MAP } from '../../types'
+import { getBizTypeLabel } from '../../services/adapters/applicationAdapter'
 
 const { confirm } = Modal
 
 export default function UserApplicationDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [data, setData] = useState<Application | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [withdrawing, setWithdrawing] = useState(false)
+  const { data: app, loading, actionLoading, fetch, submit, withdraw, submitSupplement } = useApplicationDetail(id ?? '')
 
-  const fetchData = async () => {
-    if (!id) return
-    setLoading(true)
-    try {
-      const res = await userApi.getApplication(id)
-      setData(res.data)
-    } finally {
-      setLoading(false)
-    }
+  useEffect(() => { fetch() }, [fetch])
+
+  const handleSubmit = () => {
+    if (!app) return
+    confirm({
+      title: '确认提交申请？',
+      icon: <ExclamationCircleOutlined />,
+      content: '提交后将进入审核流程，是否继续？',
+      okText: '确认提交',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await submit()
+          message.success('申请已提交')
+        } catch {
+          message.error('提交失败')
+        }
+      },
+    })
   }
 
-  useEffect(() => { fetchData() }, [id])
-
   const handleWithdraw = () => {
-    if (!data) return
+    if (!app) return
     confirm({
       title: '确认撤回申请？',
       icon: <ExclamationCircleOutlined />,
@@ -39,37 +45,57 @@ export default function UserApplicationDetail() {
       okType: 'danger',
       cancelText: '取消',
       onOk: async () => {
-        setWithdrawing(true)
         try {
-          await userApi.withdrawApplication(data.id)
+          await withdraw()
           message.success('申请已撤回')
-          fetchData()
         } catch {
           message.error('撤回失败')
-        } finally {
-          setWithdrawing(false)
         }
       },
     })
   }
 
-  const getBizTypeLabel = (value: string) => {
-    const option = BIZ_TYPE_OPTIONS.find(opt => opt.value === value)
-    return option ? option.label : value
+  const handleSubmitSupplement = () => {
+    if (!app) return
+    confirm({
+      title: '确认提交补件？',
+      icon: <CheckCircleOutlined />,
+      content: '请确保已上传所有补件材料，提交后将重新进入审核。',
+      okText: '确认提交',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await submitSupplement()
+          message.success('补件已提交')
+        } catch {
+          message.error('提交失败')
+        }
+      },
+    })
   }
 
-  if (!data) return null
+  if (loading && !app) {
+    return <div style={{ textAlign: 'center', marginTop: 100 }}><Spin size="large" /></div>
+  }
 
-  const s = APPLICATION_STATUS_MAP[data.status] || { color: 'default', text: data.status }
+  if (!app) {
+    return <Alert message="加载失败" description="无法获取申请详情，请返回列表重试。" type="error" showIcon />
+  }
 
-  const showSupplementAlert = data.status === 'pending' || data.status === 'processing'
+  const s = APPLICATION_STATUS_MAP[app.status] ?? { color: 'default', text: app.status }
+
+  const canSubmit = app.status === 'draft'
+  const canWithdraw = app.status === 'draft' || app.status === 'submitted'
+  const canSupplement = app.status === 'supplement_required'
+  const canUpload = app.status === 'draft' || app.status === 'submitted' || app.status === 'supplement_required'
+  const uploadDisabled = !canUpload
 
   return (
     <div>
-      {showSupplementAlert && (
+      {app.status === 'supplement_required' && app.supplementReason && (
         <Alert
-          message="补件提示"
-          description="您的申请需要补充相关材料，请上传缺失的材料后等待审核。"
+          message="补件通知"
+          description={<><strong>补件原因：</strong>{app.supplementReason}</>}
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
@@ -80,12 +106,13 @@ export default function UserApplicationDetail() {
         title="申请详情"
         extra={
           <Space>
-            {(data.status === 'pending' || data.status === 'draft') && (
-              <Button
-                danger
-                loading={withdrawing}
-                onClick={handleWithdraw}
-              >
+            {canSubmit && (
+              <Button type="primary" icon={<CheckCircleOutlined />} onClick={handleSubmit} loading={actionLoading}>
+                提交申请
+              </Button>
+            )}
+            {canWithdraw && (
+              <Button danger onClick={handleWithdraw} loading={actionLoading}>
                 撤回申请
               </Button>
             )}
@@ -94,23 +121,29 @@ export default function UserApplicationDetail() {
         }
       >
         <Descriptions column={2} bordered>
-          <Descriptions.Item label="ID">{data.id}</Descriptions.Item>
+          <Descriptions.Item label="ID">{app.id}</Descriptions.Item>
           <Descriptions.Item label="状态">
             <Tag color={s.color}>{s.text}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="业务类型">{getBizTypeLabel(data.bizType)}</Descriptions.Item>
-          <Descriptions.Item label="创建时间">{data.createdAt}</Descriptions.Item>
-          <Descriptions.Item label="标题" span={2}>{data.title}</Descriptions.Item>
-          <Descriptions.Item label="描述" span={2}>{data.description}</Descriptions.Item>
+          <Descriptions.Item label="业务类型">{getBizTypeLabel(app.bizType)}</Descriptions.Item>
+          <Descriptions.Item label="创建时间">{app.createdAt}</Descriptions.Item>
+          <Descriptions.Item label="标题" span={2}>{app.title}</Descriptions.Item>
+          {app.description && <Descriptions.Item label="描述" span={2}>{app.description}</Descriptions.Item>}
+          {app.updatedAt !== app.createdAt && (
+            <Descriptions.Item label="更新时间">{app.updatedAt}</Descriptions.Item>
+          )}
         </Descriptions>
       </Card>
 
       <Card title="申请材料" style={{ marginTop: 16 }}>
         <FileUpload
-          applicationId={data.id}
-          materials={data.materials || []}
-          onSuccess={fetchData}
-          disabled={data.status === 'completed' || data.status === 'rejected' || data.status === 'voided'}
+          applicationId={app.id}
+          materials={app.materials ?? []}
+          onSuccess={fetch}
+          disabled={uploadDisabled}
+          showSubmitSupplement={canSupplement}
+          onSubmitSupplement={handleSubmitSupplement}
+          submitLoading={actionLoading}
         />
       </Card>
     </div>
