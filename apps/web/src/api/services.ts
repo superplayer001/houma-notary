@@ -52,14 +52,3 @@ export const videoApi = {
   completeSession: (caseId: string) => client.post<VideoSession>(`/video/sessions/${caseId}/complete`),
   abortSession: (caseId: string, reason: string) => client.post<VideoSession>(`/video/sessions/${caseId}/abort`, { reason }),
 }
-
-export interface ExternalDebugRequest {
-  requestNo?: string
-  stage?: string
-  requestData?: string
-}
-
-export const externalApi = {
-  sendRequest: (data: ExternalDebugRequest) => client.post('/external/send', data),
-  queryRequest: (requestNo: string) => client.get(`/external/query/${requestNo}`),
-}

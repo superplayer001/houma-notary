@@ -1,49 +1,61 @@
-import { Card, Table, Tag, Button, Space, Form, InputNumber, message } from 'antd'
-import { SaveOutlined } from '@ant-design/icons'
+import { useEffect } from 'react'
+import { Card, Table, Tag, Spin, Empty, Alert } from 'antd'
+import type { ColumnsType } from 'antd/es/table'
+import { useSystemParams } from '../../hooks/useSystemParams'
+import type { SystemParam } from '../../services/adapters/paramsAdapter'
 
-interface SystemParam {
-  key: string
-  name: string
-  value: string
-  type: 'string' | 'number' | 'boolean'
-  description: string
+const typeColor: Record<string, string> = {
+  string: 'blue',
+  number: 'green',
+  boolean: 'orange',
 }
 
-const PARAMS: SystemParam[] = [
-  { key: 'CASE_EXPIRY_DAYS', name: '案件有效期（天）', value: '30', type: 'number', description: '案件从受理到完成的允许天数' },
-  { key: 'MAX_MATERIAL_SIZE_MB', name: '材料大小限制（MB）', value: '20', type: 'number', description: '单次上传材料文件大小上限' },
-  { key: 'ALLOW_WITHDRAW_AFTER_SUBMIT', name: '提交后允许撤回', value: 'false', type: 'boolean', description: '申请提交后是否允许用户撤回' },
-  { key: 'REQUIRE_VIDEO_FOR_TYPES', name: '需双录的业务类型', value: 'will,property', type: 'string', description: '逗号分隔，需要双录公证的业务类型' },
-  { key: 'CERTIFICATE_VALIDITY_YEARS', name: '证书有效期（年）', value: '永久', type: 'string', description: '公证证书的有效期限' },
-]
-
 export default function AdminSystemParams() {
-  const handleSave = (key: string) => {
-    message.success(`参数 ${key} 已保存（mock）`)
+  const { data, loading, error, load } = useSystemParams()
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const columns: ColumnsType<SystemParam> = [
+    { title: '参数键', dataIndex: 'key', width: 240, render: (k: string) => <Tag>{k}</Tag> },
+    { title: '参数值', dataIndex: 'value', width: 200 },
+    { title: '类型', dataIndex: 'type', width: 80, render: (t: string) => <Tag color={typeColor[t] ?? 'default'}>{t}</Tag> },
+    { title: '描述', dataIndex: 'description' },
+    { title: '更新时间', dataIndex: 'updatedAt', width: 160 },
+  ]
+
+  if (loading) return <Spin tip="加载系统参数..." />
+
+  if (error) {
+    return (
+      <Alert
+        type="error"
+        message="加载失败"
+        description={`后端暂未支持 /admin/system-params 接口，当前为 Mock 数据。错误：${error}`}
+        showIcon
+      />
+    )
   }
+
+  if (!data.length) return <Empty description="暂无系统参数" />
 
   return (
     <div>
-      {PARAMS.map((p) => (
-        <Card key={p.key} size="small" style={{ marginBottom: 12 }}>
-          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-            <Space direction="vertical" size={0}>
-              <strong>{p.name}</strong>
-              <Space>
-                <Tag>{p.key}</Tag>
-                <span style={{ color: '#999', fontSize: 12 }}>{p.description}</span>
-              </Space>
-            </Space>
-            <Space>
-              <InputNumber
-                value={p.type === 'number' ? Number(p.value) : undefined}
-                style={{ width: 120 }}
-              />
-              <Button size="small" icon={<SaveOutlined />} onClick={() => handleSave(p.key)}>保存</Button>
-            </Space>
-          </Space>
-        </Card>
-      ))}
+      <Alert
+        type="info"
+        message="系统参数（只读）"
+        description="本次仅实现读取展示，编辑保存功能待后端接口就绪后接入。"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
+      <Table
+        rowKey="key"
+        dataSource={data}
+        columns={columns}
+        pagination={false}
+        size="small"
+      />
     </div>
   )
 }
