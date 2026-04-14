@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Descriptions, Tag, Button, Space, Input, message } from 'antd'
+import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert, DescriptionsItemProps } from 'antd'
+import { CheckCircleFilled, CloseCircleFilled, ClockCircleFilled } from '@ant-design/icons'
 import { staffApi } from '../../api/services'
-import type { Case } from '../../types'
+import type { Case, CaseStatus } from '../../types'
+import { CASE_STATUS_MAP } from '../../types'
 
 const { TextArea } = Input
 
@@ -40,13 +42,30 @@ export default function StaffCaseDetail() {
 
   if (!data) return null
 
-  const statusMap: Record<string, { color: string; text: string }> = {
-    assigned: { color: 'blue', text: '已分配' },
-    in_progress: { color: 'orange', text: '进行中' },
-    completed: { color: 'green', text: '已完成' },
+  const s = CASE_STATUS_MAP[data.status] || { color: 'default', text: data.status }
+
+  const getTimelineIcon = (status: CaseStatus) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircleFilled style={{ color: '#52c41a' }} />
+      case 'voided':
+        return <CloseCircleFilled style={{ color: '#ff4d4f' }} />
+      default:
+        return <ClockCircleFilled style={{ color: '#1890ff' }} />
+    }
   }
 
-  const s = statusMap[data.status] || { color: 'default', text: data.status }
+  const timelineItems = [
+    { color: 'green', dot: <CheckCircleFilled />, children: `案件创建 - ${data.createdAt}` },
+  ]
+
+  if (data.acceptedAt) {
+    timelineItems.push({ color: 'blue', dot: <ClockCircleFilled />, children: `案件受理 - ${data.acceptedAt}` })
+  }
+
+  if (data.completedAt) {
+    timelineItems.push({ color: 'green', dot: <CheckCircleFilled />, children: `案件完成 - ${data.completedAt}` })
+  }
 
   return (
     <div>
@@ -68,7 +87,27 @@ export default function StaffCaseDetail() {
         </Descriptions>
       </Card>
 
-      {data.status !== 'completed' && (
+      <Card title="办理进度" style={{ marginTop: 16 }}>
+        <Timeline items={timelineItems} />
+      </Card>
+
+      {data.status === 'completed' && (
+        <Card title="公证证书" style={{ marginTop: 16 }}>
+          <Alert
+            message="证书信息"
+            description={
+              <Descriptions column={2} bordered size="small">
+                <Descriptions.Item label="证书编号">{data.certificateNo || '待生成'}</Descriptions.Item>
+                <Descriptions.Item label="验真码">{data.verifyCode || '待生成'}</Descriptions.Item>
+              </Descriptions>
+            }
+            type="info"
+            showIcon
+          />
+        </Card>
+      )}
+
+      {data.status !== 'completed' && data.status !== 'voided' && (
         <Card title="处理结果" style={{ marginTop: 16 }}>
           <TextArea
             rows={4}

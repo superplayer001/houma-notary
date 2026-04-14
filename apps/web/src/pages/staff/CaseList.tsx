@@ -3,7 +3,8 @@ import { Table, Button, Tag } from 'antd'
 import type { TablePaginationConfig } from 'antd/es/table/interface'
 import { Link } from 'react-router-dom'
 import { staffApi } from '../../api/services'
-import type { Case } from '../../types'
+import type { Case, CaseStatus } from '../../types'
+import { CASE_STATUS_MAP } from '../../types'
 
 export default function StaffCaseList() {
   const [data, setData] = useState<Case[]>([])
@@ -27,12 +28,6 @@ export default function StaffCaseList() {
     fetchData(pagination.current, pagination.pageSize)
   }
 
-  const statusMap: Record<string, { color: string; text: string }> = {
-    assigned: { color: 'blue', text: '已分配' },
-    in_progress: { color: 'orange', text: '进行中' },
-    completed: { color: 'green', text: '已完成' },
-  }
-
   return (
     <div>
       <Table
@@ -45,12 +40,13 @@ export default function StaffCaseList() {
           { title: 'ID', dataIndex: 'id', key: 'id', width: 200 },
           { title: '申请ID', dataIndex: 'applicationId', key: 'applicationId' },
           { title: '处理人ID', dataIndex: 'staffId', key: 'staffId' },
+          { title: '业务类型', dataIndex: 'bizType', key: 'bizType' },
           {
             title: '状态',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string) => {
-              const s = statusMap[status] || { color: 'default', text: status }
+            render: (status: CaseStatus) => {
+              const s = CASE_STATUS_MAP[status] || { color: 'default', text: status }
               return <Tag color={s.color}>{s.text}</Tag>
             },
           },
