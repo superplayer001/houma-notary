@@ -25,5 +25,7 @@ export const staffApi = {
   listCases: (params?: PaginationParams) => client.get<Case[]>('/staff/cases', { params }),
   getCase: (id: string) => client.get<Case>(`/staff/cases/${id}`),
   assignCase: (applicationId: string) => client.post<Case>(`/staff/applications/${applicationId}/assign`),
+  supplementApplication: (id: string, reason: string) => client.post<void>(`/staff/applications/${id}/supplement`, { reason }),
+  rejectApplication: (id: string, reason: string) => client.post<void>(`/staff/applications/${id}/reject`, { reason }),
   completeCase: (id: string, result: string) => client.post<Case>(`/staff/cases/${id}/complete`, { result }),
 }
