@@ -1,0 +1,63 @@
+import { useEffect, useState } from 'react'
+import { Table, Button, Tag } from 'antd'
+import { Link } from 'react-router-dom'
+import { staffApi } from '../../api/services'
+import type { Case } from '../../types'
+
+export default function StaffCaseList() {
+  const [data, setData] = useState<Case[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await staffApi.listCases()
+      setData(res.data)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchData() }, [])
+
+  const statusMap: Record<string, { color: string; text: string }> = {
+    assigned: { color: 'blue', text: '已分配' },
+    in_progress: { color: 'orange', text: '进行中' },
+    completed: { color: 'green', text: '已完成' },
+  }
+
+  return (
+    <div>
+      <Table
+        rowKey="id"
+        loading={loading}
+        dataSource={data}
+        columns={[
+          { title: 'ID', dataIndex: 'id', key: 'id', width: 200 },
+          { title: '申请ID', dataIndex: 'applicationId', key: 'applicationId' },
+          { title: '处理人ID', dataIndex: 'staffId', key: 'staffId' },
+          {
+            title: '状态',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status: string) => {
+              const s = statusMap[status] || { color: 'default', text: status }
+              return <Tag color={s.color}>{s.text}</Tag>
+            },
+          },
+          { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+          { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt' },
+          {
+            title: '操作',
+            key: 'action',
+            render: (_: unknown, record: Case) => (
+              <Link to={`/staff/cases/${record.id}`}>
+                <Button type="link">查看详情</Button>
+              </Link>
+            ),
+          },
+        ]}
+      />
+    </div>
+  )
+}
