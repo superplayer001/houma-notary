@@ -16,3 +16,9 @@ pub async fn check_connection(pool: &DbPool) -> Result<(), sqlx::Error> {
     sqlx::query("SELECT 1").execute(pool).await?;
     Ok(())
 }
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: DbPool,
+    pub storage: crate::storage::LocalStorage,
+}

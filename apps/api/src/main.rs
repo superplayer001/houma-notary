@@ -5,6 +5,7 @@ mod services;
 mod storage;
 
 use axum::{
+    extract::State,
     http::StatusCode,
     routing::{get, post},
     Json, Router,
@@ -15,6 +16,7 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 pub use db::DbPool;
+pub use db::AppState;
 pub use storage::local::LocalStorage;
 pub use storage::Storage;
 
@@ -39,9 +41,9 @@ async fn health() -> Json<HealthResponse> {
 }
 
 async fn db_health(
-    pool: axum::extract::State<DbPool>,
+    State(state): State<AppState>,
 ) -> Result<Json<DbHealthResponse>, (StatusCode, Json<DbHealthErrorResponse>)> {
-    db::check_connection(&pool).map_err(|e| {
+    db::check_connection(&state.pool).await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(DbHealthErrorResponse {
@@ -112,6 +114,8 @@ async fn main() {
     let storage = LocalStorage::from_env();
     info!("Storage base path: {:?}", storage.base_path());
 
+    let state = AppState { pool, storage };
+
     let port: u16 = std::env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse()
@@ -121,10 +125,10 @@ async fn main() {
     info!("Starting server on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app(pool, storage)).await.unwrap();
+    axum::serve(listener, app(state)).await.unwrap();
 }
 
-fn app(pool: DbPool, storage: LocalStorage) -> Router {
+fn app(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .route("/health/db", get(db_health))
@@ -223,6 +227,5 @@ fn app(pool: DbPool, storage: LocalStorage) -> Router {
             "/api/v1/internal/video-sessions/:id/recording-result",
             post(handlers::video::report_recording_result),
         )
-        .with_state(pool)
-        .with_state(storage)
+        .with_state(state)
 }

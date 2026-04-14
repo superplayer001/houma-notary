@@ -25,6 +25,10 @@ pub struct Claims {
     pub exp: i64,           // expiration timestamp
 }
 
+pub fn init_jwt_secret() {
+    // TODO: Initialize JWT secret from environment variable
+}
+
 pub fn verify_token(_token: &str) -> Result<Claims, String> {
     // TODO: Implement actual JWT verification
     Err("Not implemented".to_string())
