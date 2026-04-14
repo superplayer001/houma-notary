@@ -6,6 +6,7 @@ import Home from '../pages/Home'
 import NotFound from '../pages/NotFound'
 import Unauthorized from '../pages/Unauthorized'
 import Verify from '../pages/Verify'
+import VideoSession from '../pages/VideoSession'
 import UserLayout from '../pages/user/Layout'
 import UserApplicationList from '../pages/user/ApplicationList'
 import UserApplicationNew from '../pages/user/ApplicationNew'
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: 'applications/:id', element: <StaffApplicationDetail /> },
       { path: 'cases', element: <StaffCaseList /> },
       { path: 'cases/:id', element: <StaffCaseDetail /> },
+      { path: 'video-session', element: <VideoSession /> },
     ],
   },
   { path: '*', element: <NotFound /> },
