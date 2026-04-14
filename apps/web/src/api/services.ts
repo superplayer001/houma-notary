@@ -1,12 +1,12 @@
 import client from './client'
-import type { LoginRequest, LoginResponse, Application, Case } from '../types'
+import type { LoginRequest, LoginResponse, Application, Case, PaginationParams } from '../types'
 
 export const authApi = {
   login: (data: LoginRequest) => client.post<LoginResponse>('/auth/login', data),
 }
 
 export const userApi = {
-  listApplications: () => client.get<Application[]>('/user/applications'),
+  listApplications: (params?: PaginationParams) => client.get<Application[]>('/user/applications', { params }),
   getApplication: (id: string) => client.get<Application>(`/user/applications/${id}`),
   createApplication: (data: Partial<Application>) => client.post<Application>('/user/applications', data),
   uploadMaterial: (applicationId: string, file: File) => {
@@ -19,9 +19,9 @@ export const userApi = {
 }
 
 export const staffApi = {
-  listTodos: () => client.get<Application[]>('/staff/todos'),
+  listTodos: (params?: PaginationParams) => client.get<Application[]>('/staff/todos', { params }),
   getApplication: (id: string) => client.get<Application>(`/staff/applications/${id}`),
-  listCases: () => client.get<Case[]>('/staff/cases'),
+  listCases: (params?: PaginationParams) => client.get<Case[]>('/staff/cases', { params }),
   getCase: (id: string) => client.get<Case>(`/staff/cases/${id}`),
   assignCase: (applicationId: string) => client.post<Case>(`/staff/applications/${applicationId}/assign`),
   completeCase: (id: string, result: string) => client.post<Case>(`/staff/cases/${id}/complete`, { result }),

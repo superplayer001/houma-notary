@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Table, Button, Tag } from 'antd'
+import type { TablePaginationConfig } from 'antd/es/table/interface'
 import { Link } from 'react-router-dom'
 import { staffApi } from '../../api/services'
 import type { Case } from '../../types'
@@ -7,18 +8,24 @@ import type { Case } from '../../types'
 export default function StaffCaseList() {
   const [data, setData] = useState<Case[]>([])
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState<TablePaginationConfig>({ current: 1, pageSize: 10, total: 0 })
 
-  const fetchData = async () => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true)
     try {
-      const res = await staffApi.listCases()
+      const res = await staffApi.listCases({ page, pageSize })
       setData(res.data)
+      setPagination((prev) => ({ ...prev, current: page, pageSize, total: res.data.length }))
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData(pagination.current, pagination.pageSize) }, [])
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetchData(pagination.current, pagination.pageSize)
+  }
 
   const statusMap: Record<string, { color: string; text: string }> = {
     assigned: { color: 'blue', text: '已分配' },
@@ -32,6 +39,8 @@ export default function StaffCaseList() {
         rowKey="id"
         loading={loading}
         dataSource={data}
+        pagination={pagination}
+        onChange={handleTableChange}
         columns={[
           { title: 'ID', dataIndex: 'id', key: 'id', width: 200 },
           { title: '申请ID', dataIndex: 'applicationId', key: 'applicationId' },

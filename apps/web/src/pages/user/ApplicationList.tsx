@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Table, Button, Space, Tag } from 'antd'
+import type { TablePaginationConfig } from 'antd/es/table/interface'
 import { Link } from 'react-router-dom'
 import { userApi } from '../../api/services'
 import type { Application } from '../../types'
@@ -7,18 +8,24 @@ import type { Application } from '../../types'
 export default function UserApplicationList() {
   const [data, setData] = useState<Application[]>([])
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState<TablePaginationConfig>({ current: 1, pageSize: 10, total: 0 })
 
-  const fetchData = async () => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true)
     try {
-      const res = await userApi.listApplications()
+      const res = await userApi.listApplications({ page, pageSize })
       setData(res.data)
+      setPagination((prev) => ({ ...prev, current: page, pageSize, total: res.data.length }))
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData(pagination.current, pagination.pageSize) }, [])
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    fetchData(pagination.current, pagination.pageSize)
+  }
 
   const statusMap: Record<string, { color: string; text: string }> = {
     draft: { color: 'default', text: '草稿' },
@@ -60,7 +67,14 @@ export default function UserApplicationList() {
           <Button type="primary">新建申请</Button>
         </Link>
       </Space>
-      <Table rowKey="id" columns={columns} dataSource={data} loading={loading} />
+      <Table
+        rowKey="id"
+        columns={columns}
+        dataSource={data}
+        loading={loading}
+        pagination={pagination}
+        onChange={handleTableChange}
+      />
     </div>
   )
 }
