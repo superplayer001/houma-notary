@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert, DescriptionsItemProps } from 'antd'
-import { CheckCircleFilled, CloseCircleFilled, ClockCircleFilled } from '@ant-design/icons'
+import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert } from 'antd'
+import { CheckCircleFilled, ClockCircleFilled } from '@ant-design/icons'
 import { staffApi } from '../../api/services'
-import type { Case, CaseStatus } from '../../types'
+import type { Case } from '../../types'
 import { CASE_STATUS_MAP } from '../../types'
 
 const { TextArea } = Input
@@ -43,17 +43,6 @@ export default function StaffCaseDetail() {
   if (!data) return null
 
   const s = CASE_STATUS_MAP[data.status] || { color: 'default', text: data.status }
-
-  const getTimelineIcon = (status: CaseStatus) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircleFilled style={{ color: '#52c41a' }} />
-      case 'voided':
-        return <CloseCircleFilled style={{ color: '#ff4d4f' }} />
-      default:
-        return <ClockCircleFilled style={{ color: '#1890ff' }} />
-    }
-  }
 
   const timelineItems = [
     { color: 'green', dot: <CheckCircleFilled />, children: `案件创建 - ${data.createdAt}` },
