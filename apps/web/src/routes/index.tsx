@@ -5,6 +5,7 @@ import Login from '../pages/Login'
 import Home from '../pages/Home'
 import NotFound from '../pages/NotFound'
 import Unauthorized from '../pages/Unauthorized'
+import Verify from '../pages/Verify'
 import UserLayout from '../pages/user/Layout'
 import UserApplicationList from '../pages/user/ApplicationList'
 import UserApplicationNew from '../pages/user/ApplicationNew'
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/', element: <Home /> },
   { path: '/unauthorized', element: <Unauthorized /> },
+  { path: '/verify', element: <Verify /> },
   {
     path: '/user',
     element: <ProtectedRoute allowedType="user"><UserLayout /></ProtectedRoute>,
