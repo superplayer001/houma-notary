@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Form, Input, Button, Card, message, useNavigate } from 'antd'
+import { Form, Input, Button, Card, message, useNavigate, Select, Space } from 'antd'
 import { userApi } from '../../api/services'
+import { BIZ_TYPE_OPTIONS } from '../../types'
 
 const { TextArea } = Input
 
@@ -9,7 +10,7 @@ export default function UserApplicationNew() {
   const navigate = useNavigate()
   const [form] = Form.useForm()
 
-  const onFinish = async (values: { type: string; description: string }) => {
+  const onFinish = async (values: { bizType: string; title: string; description: string }) => {
     setLoading(true)
     try {
       const res = await userApi.createApplication(values)
@@ -25,8 +26,11 @@ export default function UserApplicationNew() {
   return (
     <Card title="新建申请">
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item name="type" label="申请类型" rules={[{ required: true }]}>
-          <Input placeholder="如：房产公证、遗嘱公证等" />
+        <Form.Item name="bizType" label="业务类型" rules={[{ required: true }]}>
+          <Select placeholder="请选择业务类型" options={BIZ_TYPE_OPTIONS} />
+        </Form.Item>
+        <Form.Item name="title" label="申请标题" rules={[{ required: true }]}>
+          <Input placeholder="请输入申请标题" maxLength={100} showCount />
         </Form.Item>
         <Form.Item name="description" label="描述" rules={[{ required: true }]}>
           <TextArea rows={4} placeholder="请详细描述您的公证需求" />
