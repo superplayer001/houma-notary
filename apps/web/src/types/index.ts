@@ -1,5 +1,6 @@
 export interface LoginRequest {
-  username: string
+  phone?: string
+  username?: string
   password: string
 }
 
