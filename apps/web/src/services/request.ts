@@ -206,7 +206,7 @@ client.interceptors.request.use((config) => {
       const detail = Object.values(MOCK_CASE_DETAIL).find(d => d.certificate?.id === certId) ?? MOCK_CASE_DETAIL['CASE-001']
       const updatedCert = { ...detail.certificate, status: 'VOIDED', voidedAt: new Date().toLocaleString(), voidReason: body?.comment ?? '作废' }
       const updated = { ...detail, certificate: updatedCert }
-      MOCK_CASE_DETAIL[detail.case.id] = updated
+      MOCK_CASE_DETAIL[detail.case.id as string] = updated
       config.adapter = async () => {
         await new Promise(r => setTimeout(r, MOCK_DELAY))
         return { data: updated, status: 200, statusText: 'OK', headers: {}, config } as unknown as AxiosResponse

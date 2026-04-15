@@ -19,7 +19,7 @@ export interface ApplicationDetailResponse extends RawApplication {}
 
 export async function listApplications(params?: { page?: number; page_size?: number }): Promise<PaginatedResponse<Application>> {
   const res = await client.get<RawPaginatedResponse>('/applications', { params })
-  return normalizePaginated(res.data, normalizeApplication)
+  return normalizePaginated(res.data, normalizeApplication as (item: unknown) => Application)
 }
 
 export async function getApplication(id: string): Promise<Application> {

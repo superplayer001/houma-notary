@@ -18,7 +18,7 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   const d = res.data
   return {
     token: d.token,
-    userType: d.user_type,
+    userType: d.user_type as LoginResponse['userType'],
     userId: d.user_id,
     username: d.username,
   }

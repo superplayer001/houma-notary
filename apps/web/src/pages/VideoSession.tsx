@@ -111,7 +111,7 @@ export default function VideoSession() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 16px' }}>
       <Card title="双录会话管理" extra={<Button onClick={() => navigate('/staff/cases')}>返回案件列表</Button>}>
-        <Space style={{ marginBottom: 16 }} direction="vertical" style={{ width: '100%' }}>
+        <Space style={{ marginBottom: 16, width: '100%' }} direction="vertical">
           <Space>
             <Select
               placeholder="请选择案件"

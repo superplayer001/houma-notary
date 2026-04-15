@@ -17,7 +17,7 @@ export interface PaginationParams {
 
 export async function listTodos(params?: PaginationParams): Promise<PaginatedResponse<Application>> {
   const res = await client.get<RawPaginatedResponse>('/staff/todos', { params })
-  return normalizePaginated(res.data, normalizeApplication)
+  return normalizePaginated(res.data, normalizeApplication as (item: unknown) => Application)
 }
 
 export async function getApplication(id: string): Promise<Application> {
@@ -27,7 +27,7 @@ export async function getApplication(id: string): Promise<Application> {
 
 export async function listCases(params?: PaginationParams): Promise<PaginatedResponse<Case>> {
   const res = await client.get<RawPaginatedResponse>('/staff/cases', { params })
-  return normalizePaginated(res.data, normalizeCase)
+  return normalizePaginated(res.data, normalizeCase as (item: unknown) => Case)
 }
 
 export async function getCase(id: string): Promise<Case> {

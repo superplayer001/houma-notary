@@ -9,6 +9,7 @@ import {
   type CaseListItem,
   type CaseDetail,
 } from '../adapters/caseAdapter'
+export type { CaseDetail }
 
 export interface ListCasesParams {
   page?: number
@@ -19,7 +20,7 @@ export interface ListCasesParams {
 
 export async function listCases(params?: ListCasesParams): Promise<PaginatedResponse<CaseListItem>> {
   const res = await client.get<RawPaginatedResponse>('/staff/cases', { params })
-  return normalizePaginated(res.data, normalizeCaseListItem)
+  return normalizePaginated(res.data, normalizeCaseListItem as (item: unknown) => CaseListItem)
 }
 
 export async function getCase(id: string): Promise<CaseDetail> {

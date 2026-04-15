@@ -260,7 +260,7 @@ export function normalizeCaseStatus(raw: string): CaseStatus {
   return map[raw.toUpperCase()] ?? (raw as CaseStatus)
 }
 
-function normalizeCertificateStatus(raw: string): CertificateStatus {
+export function normalizeCertificateStatus(raw: string): CertificateStatus {
   const map: Record<string, CertificateStatus> = {
     ISSUED: 'ISSUED',
     VOIDED: 'VOIDED',
@@ -275,11 +275,7 @@ function normalizeCertificate(raw: RawCertificate): Certificate {
     id: raw.id ?? raw._id ?? '',
     certificateNo: raw.certificate_no ?? raw.certificateNo ?? '',
     verifyCode: raw.verify_code ?? raw.verifyCode ?? '',
-    status: raw.certificate_status
-      ? normalizeCertificateStatus(raw.certificate_status)
-      : raw.certificateStatus
-      ? normalizeCertificateStatus(raw.certificateStatus)
-      : 'ISSUED',
+    status: normalizeCertificateStatus(raw.status ?? 'ISSUED'),
     issuedAt: raw.issued_at ?? raw.issuedAt ?? '',
     voidedAt: raw.voided_at ?? raw.voidedAt ?? '',
     voidReason: raw.void_reason ?? raw.voidReason ?? '',
@@ -314,9 +310,9 @@ function normalizeCase(raw: RawCase): CaseDetail {
     certificateNo: raw.certificate_no ?? raw.certificateNo ?? '',
     verifyCode: raw.verify_code ?? raw.verifyCode ?? '',
     certificateStatus: raw.certificate_status
-      ? normalizeCertificateStatus(raw.certificate_status)
+      ? normalizeCertificateStatus(raw.certificate_status as string)
       : raw.certificateStatus
-      ? normalizeCertificateStatus(raw.certificateStatus)
+      ? normalizeCertificateStatus(raw.certificateStatus as string)
       : 'ISSUED',
     issuedAt: raw.issued_at ?? raw.issuedAt ?? '',
     voidedAt: raw.voided_at ?? raw.voidedAt ?? '',
@@ -363,9 +359,9 @@ export function normalizeCaseDetailResponse(raw: RawCaseDetailResponse): CaseDet
     certificateNo: cert.certificate_no ?? cert.certificateNo ?? c.certificate_no ?? c.certificateNo ?? '',
     verifyCode: cert.verify_code ?? cert.verifyCode ?? c.verify_code ?? c.verifyCode ?? '',
     certificateStatus: cert.certificate_status
-      ? normalizeCertificateStatus(cert.certificate_status)
+      ? normalizeCertificateStatus(cert.certificate_status as string)
       : cert.certificateStatus
-      ? normalizeCertificateStatus(cert.certificateStatus)
+      ? normalizeCertificateStatus(cert.certificateStatus as string)
       : 'ISSUED',
     issuedAt: cert.issued_at ?? cert.issuedAt ?? '',
     voidedAt: cert.voided_at ?? cert.voidedAt ?? '',

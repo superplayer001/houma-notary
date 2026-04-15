@@ -1,4 +1,5 @@
 import type { Application, Material } from '../../types'
+import type { RawTimelineEvent } from './staffApplicationAdapter'
 
 const BIZ_TYPE_LABEL_MAP: Record<string, string> = {
   property: '房产公证',

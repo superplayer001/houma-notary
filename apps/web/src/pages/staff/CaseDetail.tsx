@@ -4,7 +4,8 @@ import { Card, Descriptions, Tag, Button, Space, Input, message, Timeline, Alert
 import { CheckCircleFilled, ClockCircleFilled, ExclamationCircleOutlined, CloseCircleFilled, FileTextOutlined } from '@ant-design/icons'
 import { useCaseDetail } from '../../hooks/useCaseDetail'
 import { BIZ_TYPE_OPTIONS } from '../../types'
-import type { CaseStatus, CertificateStatus } from '../../services/adapters/caseAdapter'
+import type { TimelineEvent } from '../../services/adapters/caseAdapter'
+import type { Material } from '../../types'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -88,7 +89,7 @@ export default function StaffCaseDetail() {
   const cs = CASE_STATUS_MAP[caseStatus] ?? { color: 'default', text: caseStatus }
   const certS = certStatus ? (CERT_STATUS_MAP[certStatus] ?? { color: 'default', text: certStatus }) : null
 
-  const timelineItems = data.timeline?.map((ev) => {
+  const timelineItems = data.timeline?.map((ev: TimelineEvent) => {
     const isReject = ev.event.includes('驳回') || ev.event.includes('作废')
     const isAccept = ev.event.includes('受理') || ev.event.includes('批准')
     return {
@@ -303,7 +304,7 @@ export default function StaffCaseDetail() {
       {data.materials && data.materials.length > 0 && (
         <Card title="申请材料" style={{ marginTop: 16 }}>
           <Descriptions column={2} bordered size="small">
-            {data.materials.map((m) => (
+            {data.materials.map((m: Material) => (
               <Descriptions.Item key={m.id} label={m.name}>
                 <a href={m.url} target="_blank" rel="noopener noreferrer">{m.name}</a>
                 <span style={{ color: '#888', marginLeft: 8 }}>{m.type}</span>

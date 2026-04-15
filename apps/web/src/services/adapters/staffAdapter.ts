@@ -105,7 +105,6 @@ export function normalizeApplication(raw: RawApplication): Application {
   return {
     id: raw.id ?? raw._id ?? '',
     userId: raw.user_id ?? raw.userId ?? '',
-    staffId: raw.staff_id ?? raw.staffId,
     status: normalizeStatus(raw.status ?? 'draft'),
     bizType: raw.biz_type ?? raw.bizType ?? '',
     title: raw.title ?? '',

@@ -2,7 +2,6 @@ import { client } from '../request'
 import {
   normalizeStaffApplication,
   normalizePaginated,
-  normalizeMaterial,
   type RawPaginatedResponse,
   type RawStaffApplication,
   type PaginatedResponse,
