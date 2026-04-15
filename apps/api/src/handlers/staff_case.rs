@@ -103,7 +103,7 @@ impl From<case::Case> for CaseResponse {
             case_no: c.case_no,
             biz_type: c.biz_type,
             status: c.status,
-            accepted_at: c.accepted_at.map(|t| t.to_rfc3339()),
+            accepted_at: None,
             created_at: c.created_at.to_rfc3339(),
             updated_at: c.updated_at.to_rfc3339(),
         }
@@ -123,8 +123,8 @@ pub struct CaseListItem {
     pub updated_at: String,
 }
 
-impl From<case::Case> for CaseListItem {
-    fn from(c: case::Case) -> Self {
+impl From<case::CaseWithAssignedStaff> for CaseListItem {
+    fn from(c: case::CaseWithAssignedStaff) -> Self {
         Self {
             id: c.id.to_string(),
             case_no: c.case_no,
@@ -132,7 +132,7 @@ impl From<case::Case> for CaseListItem {
             status: c.status,
             application_id: c.application_id.to_string(),
             assigned_staff_id: c.assigned_staff_id.map(|id| id.to_string()),
-            accepted_at: c.accepted_at.map(|t| t.to_rfc3339()),
+            accepted_at: c.issued_at.map(|t| t.to_rfc3339()),
             created_at: c.created_at.to_rfc3339(),
             updated_at: c.updated_at.to_rfc3339(),
         }
