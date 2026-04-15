@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Form, Input, Button, Card, message, useNavigate, Select, Space } from 'antd'
+import { Form, Input, Button, Card, message, Select, Space } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import { createApplication } from '../../services/api/applications'
 import { isMockMode } from '../../services/request'
 import { mockCreateApplication } from '../../services/mock'
