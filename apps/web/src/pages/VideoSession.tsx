@@ -50,9 +50,9 @@ export default function VideoSession() {
         status: 'waiting',
         participants: ['公证员01', '申请人'],
       })
+    } finally {
+      setLoading(false)
     }
-  } finally {
-    setLoading(false)
   }
 
   const handleStart = async () => {
