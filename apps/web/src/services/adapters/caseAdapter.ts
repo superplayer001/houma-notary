@@ -153,7 +153,7 @@ export interface Certificate {
   issuedAt: string
   voidedAt: string
   voidReason: string
-  bizType: string
+  bizType?: string
   digest?: string
 }
 
@@ -271,15 +271,16 @@ export function normalizeCertificateStatus(raw: string): CertificateStatus {
 }
 
 function normalizeCertificate(raw: RawCertificate): Certificate {
+  const voided = (raw as unknown as { voided?: boolean }).voided
   return {
     id: raw.id ?? raw._id ?? '',
     certificateNo: raw.certificate_no ?? raw.certificateNo ?? '',
     verifyCode: raw.verify_code ?? raw.verifyCode ?? '',
-    status: normalizeCertificateStatus(raw.status ?? 'ISSUED'),
+    status: voided ? 'VOIDED' : 'ISSUED',
     issuedAt: raw.issued_at ?? raw.issuedAt ?? '',
     voidedAt: raw.voided_at ?? raw.voidedAt ?? '',
     voidReason: raw.void_reason ?? raw.voidReason ?? '',
-    bizType: raw.biz_type ?? raw.bizType ?? '',
+    bizType: raw.biz_type ?? raw.bizType,
     digest: raw.digest,
   }
 }
@@ -288,10 +289,10 @@ function normalizeCaseApplication(raw: RawApplication): CaseApplication {
   return {
     id: raw.id ?? raw._id ?? '',
     applicationNo: raw.application_no ?? raw.applicationNo ?? '',
-    userId: raw.user_id ?? raw.userId ?? '',
+    userId: '',
     bizType: raw.biz_type ?? raw.bizType ?? '',
     title: raw.title ?? '',
-    description: raw.description ?? '',
+    description: '',
     createdAt: raw.created_at ?? raw.createdAt ?? '',
     updatedAt: raw.updated_at ?? raw.updatedAt ?? '',
     materials: (raw.materials ?? []).map(normalizeMaterial),
@@ -348,21 +349,19 @@ export function normalizeCaseDetailResponse(raw: RawCaseDetailResponse): CaseDet
   const cert = raw.certificate ?? {}
   const app = raw.application ?? {}
 
+  const certVoided = (cert as unknown as { voided?: boolean }).voided
+
   return {
     id: c.id ?? c._id ?? '',
     caseNo: c.case_no ?? c.caseNo ?? '',
-    applicationId: c.application_id ?? c.applicationId ?? '',
-    staffId: c.staff_id ?? c.staffId ?? '',
+    applicationId: app.id ?? '',
+    staffId: '',
     bizType: c.biz_type ?? c.bizType ?? '',
     status: normalizeCaseStatus(c.status ?? 'CREATED'),
-    result: c.result ?? '',
-    certificateNo: cert.certificate_no ?? cert.certificateNo ?? c.certificate_no ?? c.certificateNo ?? '',
-    verifyCode: cert.verify_code ?? cert.verifyCode ?? c.verify_code ?? c.verifyCode ?? '',
-    certificateStatus: cert.certificate_status
-      ? normalizeCertificateStatus(cert.certificate_status as string)
-      : cert.certificateStatus
-      ? normalizeCertificateStatus(cert.certificateStatus as string)
-      : 'ISSUED',
+    result: '',
+    certificateNo: cert.certificate_no ?? cert.certificateNo ?? '',
+    verifyCode: cert.verify_code ?? cert.verifyCode ?? '',
+    certificateStatus: certVoided ? 'VOIDED' : 'ISSUED',
     issuedAt: cert.issued_at ?? cert.issuedAt ?? '',
     voidedAt: cert.voided_at ?? cert.voidedAt ?? '',
     voidReason: cert.void_reason ?? cert.voidReason ?? '',
