@@ -296,9 +296,9 @@ client.interceptors.request.use((config) => {
     }
 
     if (url === '/external/enforcement/applications' && config.method === 'post') {
-      const body = (typeof config.data === 'string' ? JSON.parse(config.data) : config.data) as { title?: string; applicant_name?: string }
+      const body = (typeof config.data === 'string' ? JSON.parse(config.data) : config.data) as { case_description?: string; applicant_name?: string }
       const requestNo = `EXT-${Date.now()}`
-      const externalRequestNo = body?.title ?? `OUT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`
+      const externalRequestNo = body?.case_description ?? `OUT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`
       const sourceSystem = config.headers['X-Source-System'] as string ?? 'UNKNOWN'
       const mockResp = { request_no: requestNo, external_request_no: externalRequestNo, source_system: sourceSystem, biz_type: 'ENFORCEMENT', status: 'PROCESSING', current_stage: 'APPLICATION_CREATED', application_id: `APP-${requestNo}` }
       MOCK_EXTERNAL_SEND_RESPONSES[requestNo] = mockResp

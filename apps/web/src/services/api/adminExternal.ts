@@ -13,10 +13,9 @@ import {
 export interface SendExternalRequest {
   sourceSystem: string
   externalRequestNo?: string
-  title: string
+  caseDescription: string
   applicantName: string
   applicantIdNo: string
-  remark?: string
 }
 
 export async function sendEnforcementApplication(

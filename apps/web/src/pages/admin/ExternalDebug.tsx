@@ -11,13 +11,12 @@ export default function ExternalDebug() {
   const [form] = Form.useForm()
   const { sendLoading, queryLoading, sendResult, queryResult, handleSend, handleQuery } = useExternalRequest()
 
-  const onSend = async (values: { title: string; applicantName: string; applicantIdNo: string; remark?: string; externalRequestNo?: string }) => {
+  const onSend = async (values: { caseDescription: string; applicantName: string; applicantIdNo: string; externalRequestNo?: string }) => {
     await handleSend({
       sourceSystem,
-      title: values.title,
+      caseDescription: values.caseDescription,
       applicantName: values.applicantName,
       applicantIdNo: values.applicantIdNo,
-      remark: values.remark,
       externalRequestNo: values.externalRequestNo,
     })
   }
@@ -46,7 +45,7 @@ export default function ExternalDebug() {
                   <Form.Item name="externalRequestNo" label="外部请求编号（可选）">
                     <Input placeholder="自动生成" />
                   </Form.Item>
-                  <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入标题' }]}>
+                  <Form.Item name="caseDescription" label="案件描述" rules={[{ required: true, message: '请输入案件描述' }]}>
                     <Input placeholder="如：某借款合同附强申请" />
                   </Form.Item>
                   <Form.Item name="applicantName" label="申请人姓名" rules={[{ required: true, message: '请输入申请人姓名' }]}>
@@ -54,9 +53,6 @@ export default function ExternalDebug() {
                   </Form.Item>
                   <Form.Item name="applicantIdNo" label="申请人身份证号" rules={[{ required: true, message: '请输入身份证号' }]}>
                     <Input placeholder="如：140xxxxxxxxxxxxx" />
-                  </Form.Item>
-                  <Form.Item name="remark" label="备注">
-                    <TextArea rows={3} placeholder="外部系统推送的附强申请备注" />
                   </Form.Item>
                   <Form.Item>
                     <Button type="primary" icon={<SendOutlined />} htmlType="submit" loading={sendLoading}>

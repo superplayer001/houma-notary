@@ -4,10 +4,9 @@
 
 export interface SendEnforcementRequest {
   externalRequestNo?: string
-  title: string
+  caseDescription: string
   applicantName: string
   applicantIdNo: string
-  remark?: string
 }
 
 export interface SendEnforcementResponse {
@@ -49,10 +48,9 @@ export interface EnforcementQueryResponse {
 // Raw types from backend (snake_case)
 export interface RawSendEnforcementRequest {
   external_request_no?: string
-  title: string
+  case_description: string
   applicant_name: string
   applicant_id_no: string
-  remark?: string
 }
 
 export interface RawSendEnforcementResponse {
@@ -159,10 +157,9 @@ export function normalizeEnforcementQuery(raw: RawEnforcementQueryResponse): Enf
 export function toRawSendRequest(req: SendEnforcementRequest): RawSendEnforcementRequest {
   return {
     external_request_no: req.externalRequestNo,
-    title: req.title,
+    case_description: req.caseDescription,
     applicant_name: req.applicantName,
     applicant_id_no: req.applicantIdNo,
-    remark: req.remark,
   }
 }
 
