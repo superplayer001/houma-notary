@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, Input, Button, Card, Tabs, message } from 'antd'
-import { loginByPhone, loginStaff, loginAdmin } from '../services/api/auth'
+import { loginUser, loginStaff, loginAdmin } from '../services/api/auth'
 import { useAuthStore } from '../stores/auth'
 import { useDeviceType } from '../hooks/useDeviceType'
 import { isMockMode } from '../services/request'
@@ -26,7 +26,7 @@ export default function Login() {
   }
 
   const handleLogin = async (
-    values: { phone?: string; username?: string },
+    values: { username: string; password: string },
     userType: 'user' | 'staff' | 'admin'
   ) => {
     setLoading(true)
@@ -41,25 +41,21 @@ export default function Login() {
 
       let res
       if (userType === 'user') {
-        res = await loginByPhone({ phone: values.phone ?? '' })
+        res = await loginUser({ username: values.username, password: values.password })
         login(res.token, res.userType, res.userId, res.username)
         navigate('/user/applications')
       } else if (userType === 'staff') {
-        res = await loginStaff(values.username ?? '')
+        res = await loginStaff({ username: values.username, password: values.password })
         login(res.token, res.userType, res.userId, res.username)
         navigate('/staff/todos')
       } else {
-        res = await loginAdmin(values.username ?? '')
+        res = await loginAdmin({ username: values.username, password: values.password })
         login(res.token, res.userType, res.userId, res.username)
         navigate('/staff/todos')
       }
       message.success('登录成功')
     } catch {
-      if (userType === 'user') {
-        message.error('登录失败，请检查手机号')
-      } else {
-        message.error('登录失败，请检查工号')
-      }
+      message.error('登录失败，请检查用户名和密码')
     } finally {
       setLoading(false)
     }
@@ -138,21 +134,25 @@ function UserLoginForm({
   onLogin,
 }: {
   loading: boolean
-  onLogin: (values: { phone: string }, userType: 'user') => void
+  onLogin: (values: { username: string; password: string }, userType: 'user') => void
 }) {
   const [form] = Form.useForm()
 
   return (
-    <Form form={form} layout="vertical" onFinish={(values) => onLogin({ phone: values.phone }, 'user')}>
+    <Form form={form} layout="vertical" onFinish={(values) => onLogin({ username: values.username, password: values.password }, 'user')}>
       <Form.Item
-        name="phone"
-        label="手机号"
-        rules={[
-          { required: true, message: '请输入手机号' },
-          { pattern: /^1[3-9]\d{9}$/, message: '请输入有效手机号' },
-        ]}
+        name="username"
+        label="用户名"
+        rules={[{ required: true, message: '请输入用户名' }]}
       >
-        <Input placeholder="请输入手机号" maxLength={11} />
+        <Input placeholder="请输入用户名" />
+      </Form.Item>
+      <Form.Item
+        name="password"
+        label="密码"
+        rules={[{ required: true, message: '请输入密码' }]}
+      >
+        <Input.Password placeholder="请输入密码" />
       </Form.Item>
       <Form.Item style={{ marginBottom: 0 }}>
         <Button type="primary" htmlType="submit" loading={loading} block>
@@ -169,7 +169,7 @@ function StaffLoginForm({
   userType,
 }: {
   loading: boolean
-  onLogin: (values: { username: string }, userType: 'staff' | 'admin') => void
+  onLogin: (values: { username: string; password: string }, userType: 'staff' | 'admin') => void
   userType: 'staff' | 'admin'
 }) {
   const [form] = Form.useForm()
@@ -178,10 +178,13 @@ function StaffLoginForm({
     <Form
       form={form}
       layout="vertical"
-      onFinish={(values) => onLogin({ username: values.username }, userType)}
+      onFinish={(values) => onLogin({ username: values.username, password: values.password }, userType)}
     >
       <Form.Item name="username" label="工号" rules={[{ required: true, message: '请输入工号' }]}>
         <Input placeholder="请输入工号" />
+      </Form.Item>
+      <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
+        <Input.Password placeholder="请输入密码" />
       </Form.Item>
       <Form.Item style={{ marginBottom: 0 }}>
         <Button type="primary" htmlType="submit" loading={loading} block>

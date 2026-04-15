@@ -20,9 +20,12 @@ export interface RawPendingApplication {
 export interface RawTimelineEvent {
   id?: string
   _id?: string
-  event?: string
-  operator?: string
+  scope?: string
+  action_type?: string
+  from_status?: string
+  to_status?: string
   comment?: string
+  operator_type?: string
   created_at?: string
   createdAt?: string
   [key: string]: unknown
@@ -31,13 +34,11 @@ export interface RawTimelineEvent {
 export interface RawMaterial {
   id?: string
   _id?: string
-  name?: string
-  url?: string
-  type?: string
   material_type?: string
-  materialType?: string
-  uploaded_at?: string
-  uploadedAt?: string
+  file_name?: string
+  file_size?: number
+  file_hash?: string
+  created_at?: string
   [key: string]: unknown
 }
 
@@ -46,12 +47,9 @@ export interface RawStaffApplication {
   _id?: string
   application_no?: string
   applicationNo?: string
-  user_id?: string
-  userId?: string
   biz_type?: string
   bizType?: string
   title?: string
-  description?: string
   status?: string
   submitted_at?: string
   submittedAt?: string
@@ -64,6 +62,7 @@ export interface RawStaffApplication {
   review_comment?: string
   reviewComment?: string
   materials?: RawMaterial[]
+  review_actions?: RawTimelineEvent[]
   timeline?: RawTimelineEvent[]
   application?: RawStaffApplication
   [key: string]: unknown
@@ -124,18 +123,18 @@ export interface StaffApplicationDetail {
 function normalizeMaterial(raw: RawMaterial): Material {
   return {
     id: raw.id ?? raw._id ?? '',
-    name: raw.name ?? '',
-    url: raw.url ?? '',
-    type: raw.material_type ?? raw.materialType ?? raw.type ?? '',
-    uploadedAt: raw.uploaded_at ?? raw.uploadedAt ?? '',
+    name: raw.file_name ?? '',
+    url: '',
+    type: raw.material_type ?? '',
+    uploadedAt: raw.created_at ?? '',
   }
 }
 
 function normalizeTimelineEvent(raw: RawTimelineEvent): TimelineEvent {
   return {
     id: raw.id ?? raw._id ?? '',
-    event: raw.event ?? '',
-    operator: raw.operator,
+    event: raw.action_type ?? raw.event ?? '',
+    operator: raw.operator_type ?? raw.operator,
     comment: raw.comment,
     createdAt: raw.created_at ?? raw.createdAt ?? '',
   }
@@ -146,6 +145,7 @@ export function normalizeStaffApplication(raw: unknown): PendingApplication | St
 
   if (r.application) {
     const app = r.application
+    const timeline = (app.review_actions ?? app.timeline ?? []).map(normalizeTimelineEvent)
     return {
       id: app.id ?? app._id ?? '',
       applicationNo: app.application_no ?? app.applicationNo ?? '',
@@ -160,10 +160,11 @@ export function normalizeStaffApplication(raw: unknown): PendingApplication | St
       materials: (app.materials ?? []).map(normalizeMaterial),
       supplementReason: app.supplement_reason ?? app.supplementReason,
       reviewComment: app.review_comment ?? app.reviewComment,
-      timeline: (app.timeline ?? []).map(normalizeTimelineEvent),
+      timeline,
     }
   }
 
+  const timeline = (r.review_actions ?? r.timeline ?? []).map(normalizeTimelineEvent)
   return {
     id: r.id ?? r._id ?? '',
     applicationNo: r.application_no ?? r.applicationNo ?? '',
@@ -178,7 +179,7 @@ export function normalizeStaffApplication(raw: unknown): PendingApplication | St
     materials: (r.materials ?? []).map(normalizeMaterial),
     supplementReason: r.supplement_reason ?? r.supplementReason,
     reviewComment: r.review_comment ?? r.reviewComment,
-    timeline: (r.timeline ?? []).map(normalizeTimelineEvent),
+    timeline,
   }
 }
 

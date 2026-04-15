@@ -1,55 +1,40 @@
 import { client } from '../request'
 import type { LoginResponse } from '../../types'
 
-export interface LoginByPhoneRequest {
-  phone: string
+export interface LoginRequest {
+  username: string
+  password: string
 }
 
 export interface BackendLoginResponse {
   token: string
-  user: {
-    id: string
-    phone: string
-  }
+  user_id: string
+  user_type: string
+  username: string
 }
 
-export interface BackendLoginError {
-  message?: string
-}
-
-export async function loginByPhone(data: LoginByPhoneRequest): Promise<LoginResponse> {
+export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   const res = await client.post<BackendLoginResponse>('/user/auth/login', data)
   const d = res.data
   return {
     token: d.token,
-    userType: 'user',
-    userId: d.user.id,
-    username: d.user.phone,
+    userType: d.user_type,
+    userId: d.user_id,
+    username: d.username,
   }
 }
 
-interface BackendStaffLoginResponse {
-  token: string
-  staff: {
-    id: string
-    username: string
-    display_name: string
-    role: string
-  }
-}
-
-export async function loginStaff(username: string): Promise<LoginResponse> {
-  const res = await client.post<BackendStaffLoginResponse>('/staff/auth/login', { username })
+export async function loginStaff(data: LoginRequest): Promise<LoginResponse> {
+  const res = await client.post<BackendLoginResponse>('/staff/auth/login', data)
   const d = res.data
-  const role = d.staff.role?.toUpperCase()
   return {
     token: d.token,
-    userType: role === 'ADMIN' ? 'admin' : 'staff',
-    userId: d.staff.id,
-    username: d.staff.display_name || d.staff.username,
+    userType: d.user_type === 'staff' ? 'staff' : 'admin',
+    userId: d.user_id,
+    username: d.username,
   }
 }
 
-export async function loginAdmin(username: string): Promise<LoginResponse> {
-  return loginStaff(username)
+export async function loginAdmin(data: LoginRequest): Promise<LoginResponse> {
+  return loginStaff(data)
 }

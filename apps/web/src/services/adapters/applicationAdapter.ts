@@ -34,11 +34,15 @@ export function normalizeStatus(raw: string): Application['status'] {
 export interface RawApplication {
   id?: string
   _id?: string
+  application_no?: string
+  applicationNo?: string
   biz_type?: string
   bizType?: string
   title?: string
   description?: string
   status?: string
+  submitted_at?: string
+  submittedAt?: string
   user_id?: string
   userId?: string
   created_at?: string
@@ -46,6 +50,7 @@ export interface RawApplication {
   updated_at?: string
   updatedAt?: string
   materials?: RawMaterial[]
+  review_actions?: RawTimelineEvent[]
   supplement_reason?: string
   supplementReason?: string
   [key: string]: unknown
@@ -54,22 +59,21 @@ export interface RawApplication {
 export interface RawMaterial {
   id?: string
   _id?: string
-  name?: string
-  url?: string
-  type?: string
   material_type?: string
-  uploaded_at?: string
-  uploadedAt?: string
+  file_name?: string
+  file_size?: number
+  file_hash?: string
+  created_at?: string
   [key: string]: unknown
 }
 
 export function normalizeMaterial(raw: RawMaterial): Material {
   return {
     id: raw.id ?? raw._id ?? '',
-    name: raw.name ?? '',
-    url: raw.url ?? '',
-    type: raw.material_type ?? raw.type ?? '',
-    uploadedAt: raw.uploaded_at ?? raw.uploadedAt ?? '',
+    name: raw.file_name ?? '',
+    url: '',
+    type: raw.material_type ?? '',
+    uploadedAt: raw.created_at ?? '',
   }
 }
 

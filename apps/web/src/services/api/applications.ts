@@ -41,8 +41,8 @@ export async function withdrawApplication(id: string, comment?: string): Promise
   await client.post(`/applications/${id}/withdraw`, { comment })
 }
 
-export async function submitSupplement(id: string): Promise<Application> {
-  const res = await client.post<RawApplication>(`/applications/${id}/submit-supplement`)
+export async function submitSupplement(id: string, comment?: string): Promise<Application> {
+  const res = await client.post<RawApplication>(`/applications/${id}/submit-supplement`, { comment })
   return normalizeApplication(res.data)
 }
 

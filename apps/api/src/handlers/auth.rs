@@ -5,11 +5,19 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::auth::jwt::{generate_token, verify_password, verify_token, IdentityType, Claims};
+use crate::auth::jwt::{generate_token, hash_password, verify_password, verify_token, IdentityType};
 use crate::db::AppState;
 
-// 24 hours in seconds
 const TOKEN_EXPIRY_SECS: i64 = 24 * 3600;
+
+#[derive(Debug, Deserialize)]
+pub struct UserRegisterRequest {
+    pub username: String,
+    pub phone: String,
+    pub password: String,
+    pub real_name: String,
+    pub id_card_no: Option<String>,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct UserLoginRequest {
@@ -23,8 +31,6 @@ pub struct StaffLoginRequest {
     pub password: String,
 }
 
-// Response format matches frontend's expected LoginResponse
-// { token, userType, userId, username }
 #[derive(Debug, Serialize)]
 pub struct LoginResponse {
     pub token: String,
@@ -46,6 +52,57 @@ impl LoginResponse {
             username,
         }
     }
+}
+
+pub async fn user_register(
+    State(state): State<AppState>,
+    Json(req): Json<UserRegisterRequest>,
+) -> Result<Json<LoginResponse>, StatusCode> {
+    if !req.phone.starts_with("1") || req.phone.len() != 11 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+    if req.password.len() < 6 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let existing = sqlx::query_as::<_, (uuid::Uuid,)>(
+        "SELECT id FROM users WHERE username = $1 OR phone = $2",
+    )
+    .bind(&req.username)
+    .bind(&req.phone)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if existing.is_some() {
+        return Err(StatusCode::CONFLICT);
+    }
+
+    let password_hash = hash_password(&req.password);
+    let user = sqlx::query_as::<_, (uuid::Uuid, String)>(
+        r#"
+        INSERT INTO users (username, phone, password_hash, display_name, id_card_no, status)
+        VALUES ($1, $2, $3, $4, $5, 'ACTIVE')
+        RETURNING id, username
+        "#,
+    )
+    .bind(&req.username)
+    .bind(&req.phone)
+    .bind(&password_hash)
+    .bind(&req.real_name)
+    .bind(&req.id_card_no)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to create user: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    let (id, username) = user;
+    let token = generate_token(id, IdentityType::User, &username, TOKEN_EXPIRY_SECS)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(LoginResponse::new(token, id, IdentityType::User, username)))
 }
 
 pub async fn user_login(

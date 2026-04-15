@@ -59,20 +59,23 @@ export interface RawCase {
 export interface RawMaterial {
   id?: string
   _id?: string
-  name?: string
-  url?: string
-  type?: string
   material_type?: string
-  materialType?: string
-  uploaded_at?: string
-  uploadedAt?: string
+  file_name?: string
+  file_size?: number
+  file_hash?: string
+  created_at?: string
   [key: string]: unknown
 }
 
 export interface RawTimelineEvent {
   id?: string
   _id?: string
+  scope?: string
+  action_type?: string
   event?: string
+  from_status?: string
+  to_status?: string
+  operator_type?: string
   operator?: string
   comment?: string
   created_at?: string
@@ -219,18 +222,18 @@ export interface RawPaginatedResponse {
 function normalizeMaterial(raw: RawMaterial): Material {
   return {
     id: raw.id ?? raw._id ?? '',
-    name: raw.name ?? '',
-    url: raw.url ?? '',
-    type: raw.material_type ?? raw.materialType ?? raw.type ?? '',
-    uploadedAt: raw.uploaded_at ?? raw.uploadedAt ?? '',
+    name: raw.file_name ?? '',
+    url: '',
+    type: raw.material_type ?? '',
+    uploadedAt: raw.created_at ?? '',
   }
 }
 
 function normalizeTimelineEvent(raw: RawTimelineEvent): TimelineEvent {
   return {
     id: raw.id ?? raw._id ?? '',
-    event: raw.event ?? '',
-    operator: raw.operator,
+    event: raw.action_type ?? raw.event ?? '',
+    operator: raw.operator_type ?? raw.operator,
     comment: raw.comment,
     createdAt: raw.created_at ?? raw.createdAt ?? '',
   }
